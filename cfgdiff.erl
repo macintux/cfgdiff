@@ -66,17 +66,15 @@ treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K1, V2}|T2]=P2}, Label, Accum) whe
 %% head of list 1 and try again with the next element; continue with the
 %% entirety of list 2
 treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K2, V2}|T2]=P2}, Label, Accum)
-  when K1 < K2 ->
+  when is_atom(K1) andalso K1 < K2 ->
     treediff({Name1, T1}, {Name2, P2}, Label,
              [{Label, {Name1, {K1, V1}}}] ++ Accum);
 
 %% The key at the head of list 2 does not exist in list 1. Capture the
 %% head of list 2 and try again with the next element; continue with
 %% the entirety of list 1
-%%
-%% Guard is redundant but makes things more explicit.
 treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K2, V2}|T2]=P2}, Label, Accum)
-  when K1 > K2 ->
+  when is_atom(K1) andalso K1 > K2 ->
     treediff({Name1, P1}, {Name2, T2}, Label,
              [{Label, {Name2, {K2, V2}}}] ++ Accum);
 
