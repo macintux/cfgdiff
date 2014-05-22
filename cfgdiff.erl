@@ -8,18 +8,29 @@
 -module(cfgdiff).
 -compile(export_all).
 
-filename(Path) ->
-    Tokenized = string:tokens(Path, "/"),
-    hd(lists:nthtail(length(Tokenized)-1, Tokenized)).
+unique_names(Path1, Path2) ->
+    Tokenized1 = string:tokens(Path1, "/"),
+    Tokenized2 = string:tokens(Path2, "/"),
+    pick_unique(Tokenized1, Tokenized2).
+
+pick_unique([], []) ->
+    %% Hard to imagine how this would happen, but whatev
+    {"file1", "file2"};
+pick_unique([H1|T1], [H1|T2]) ->
+    pick_unique(T1, T2);
+pick_unique([H1|T1], [H2|T2]) ->
+    {H1, H2}.
+
 
 filediff(Path1, Path2) ->
     {ok, P1} = file:consult(Path1),
     {ok, P2} = file:consult(Path2),
-    diff({filename(Path1), P1}, {filename(Path2), P2}).
+    {Name1, Name2} = unique_names(Path1, Path2),
+    diff({Name1, P1}, {Name2, P2}).
     
 
 diff({Name1, List1}, {Name2, List2}) ->
-    treediff({Name1, deepsort(List1)}, {Name2, deepsort(List2)}, top, []).
+    treediff({Name1, deepsort(List1)}, {Name2, deepsort(List2)}, "", []).
 
 %% treediff will only work as designed if the lists are sorted all the
 %% way down
@@ -41,7 +52,8 @@ treediff({Name1, [H1|T1]=P1}, {Name2, [H1|T2]=P2}, Label, Accum) ->
 %% the nested values before checking the tails
 treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K1, V2}|T2]=P2}, Label, Accum) ->
     treediff({Name1, T1}, {Name2, T2}, Label,
-             treediff({Name1, V1}, {Name2, V2}, K1, Accum));
+             treediff({Name1, V1}, {Name2, V2},
+                      Label ++ "/" ++ atom_to_list(K1), Accum));
 %% Option 4: the key at the head of list 1 does not exist in list
 %% 2. Capture the head of list 1 and try again with the next element,
 %% but retain the entirety of list 2
