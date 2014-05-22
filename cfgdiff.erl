@@ -96,7 +96,7 @@ sort_elements([H|T], Accum) when not is_list(H) ->
 sort_elements([List|T], Accum) ->
     sort_elements(T, sort_elements(lists:sort(List), []) ++ Accum).
 
-tuple_sort({K, V}) when is_list(V) ->
+tuple_sort({K, [{K1, _V1}|_T]=V}) when is_atom(K1) ->
     {K, sort_elements(lists:sort(V), [])};
 tuple_sort({K, V}) ->
     {K, V};
