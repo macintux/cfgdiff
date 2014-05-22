@@ -50,13 +50,14 @@ treediff({Name1, []}, {Name2, P2}, Label, Accum) ->
 
 %% The head of each list matches exactly, check the tails. Match the
 %% full tuple at the head of each list so that we don't accidentally
-%% start matching integers in strings
-treediff({Name1, [{_K1, _V1}|T1]=P1}, {Name2, [{_K1, _V1}|T2]=P2}, Label, Accum) ->
+%% start matching integers in strings, and check for atoms in the key
+%% so we don't sort non-proplist elements like {"IP", port}
+treediff({Name1, [{K1, _V1}|T1]=P1}, {Name2, [{K1, _V1}|T2]=P2}, Label, Accum) when is_atom(K1) ->
     treediff({Name1, T1}, {Name2, T2}, Label, Accum);
 
 %% The key at the head of each list matches, check the nested values
 %% before checking the tails
-treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K1, V2}|T2]=P2}, Label, Accum) ->
+treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K1, V2}|T2]=P2}, Label, Accum) when is_atom(K1) ->
     treediff({Name1, T1}, {Name2, T2}, Label,
              treediff({Name1, V1}, {Name2, V2},
                       Label ++ "/" ++ atom_to_list(K1), Accum));
