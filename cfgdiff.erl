@@ -79,7 +79,7 @@ treediff({Name1, [{K1, V1}|T1]=P1}, {Name2, [{K2, V2}|T2]=P2}, Label, Accum)
     treediff({Name1, P1}, {Name2, T2}, Label,
              [{Label, {Name2, {K2, V2}}}] ++ Accum);
 
-%% If we reach this point, one or the other isn't actually a proplist,
+%% If we reach this point, one or the other isn't actually a proplist
 %% and they don't match, so let's just capture the different values
 %% and move on
 treediff({Name1, P1}, {Name2, P2}, Label, Accum) ->
@@ -92,6 +92,14 @@ deepsort(P1) ->
 sort_elements([], Accum) ->
     lists:reverse(Accum);
 sort_elements([H|T], Accum) when not is_list(H) ->
-    sort_elements(T, [H] ++ Accum);
+    sort_elements(T, [tuple_sort(H)] ++ Accum);
 sort_elements([List|T], Accum) ->
     sort_elements(T, sort_elements(lists:sort(List), []) ++ Accum).
+
+tuple_sort({K, V}) when is_list(V) ->
+    {K, sort_elements(lists:sort(V), [])};
+tuple_sort({K, V}) ->
+    {K, V};
+%% If we pass something that isn't a tuple, bail
+tuple_sort(K) ->
+    K.
